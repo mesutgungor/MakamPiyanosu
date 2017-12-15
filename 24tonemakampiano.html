@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<!-- saved from url=(0031)http://www.keithwhor.com/music/ -->
+
+
+  
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Musical Keyboard in Yarman-24c tuning - JS Dynamic Audio Synth</title>
+  
+
+  
+  
+  <meta name="description" content="Keith William Horwood's keyboard (2013) revamped (2015) by Mesut Güngör and Dr. Ozan Yarman to feature makam tunings. A synthesizer created entirely in HTML5 + JS that dynamically generates modulated Waveform Audio dataURIs.">
+
+  
+  <meta name="keywords" content="keith, keith horwood, keithwhor, Güngör, Yarman, tuning, temperament, makam, maqam, social media, uwo, westernu, start-up, corporation, CEO, science, technology, blog, youtube, dataURI, javascript, JS, java, HTML5, piano, keyboard, HTML5 piano, HTML5 keyboard, waveform audio, .wav, .wav audio, audio, synth">
+
+  
+  <meta name="author" content="Keith William Horwood + Mesut Güngör + Ozan Yarman">
+
+  
+  <meta name="robots" content="index,follow,archive">
+
+  
+  <meta property="og:description" content="Keith William Horwood's keyboard (2013) revamped (2015) by Mesut Güngör and Dr. Ozan Yarman to feature makam tunings. A synthesizer created entirely in HTML5 + JS that dynamically generates modulated Waveform Audio dataURIs.">
+
+  
+  <meta property="og:image" content="http://www.ozanyarman.com">
+
+  
+  <link rel="stylesheet" href="./js/jquery-ui.css"><!--   <link rel="stylesheet" href="./js/tooltip.css"> -->
+
+
+  
+  <script src="./js/jquery-1.9.1.min.js"></script>
+  
+  <script src="./js/jquery-ui.min.js"></script>
+  
+  <script src="./js/jquery-calx-1.1.8.js"></script>
+  
+  <script type="text/javascript" src="./js/jquery.tipsy.js"></script>
+  
+  <link rel="stylesheet" href="./js/tipsy.css" type="text/css">
+
+  
+  <script>
+
+  $(document).ready(function() {
+  
+    <!-- 
+     dialog2 = $( "#keyboard_warning" ).dialog({
+		autoOpen: false,
+		height: 170,
+		width: 450,
+		modal: false,
+		buttons: {
+		"My Keyboard has US layout": function() {
+			dialog2.dialog( "close" );
+			}
+	
+		}
+		
+		
+
+});
+dialog2.dialog("open");
+       -->
+       
+       
+
+       
+       
+       
+       
+  var sel = document.getElementById('makam');
+var opt = null;
+var makams = ["Rast","Mahur","Hicaz","Nihavend","Hicazkar","Kürdilihicazkar","Buselik","Saba","Bestenigar","Kürdi","Segah","Hüzzam","Karcığar","Hüseyni","Uşşak","Nikriz"];
+
+for(i = 0; i<makams.length; i++) { 
+
+    opt = document.createElement('option');
+    opt.value = makams[i];
+    opt.innerHTML = makams[i];
+    sel.appendChild(opt);
+}
+  
+  //block preventing text entry to Input boxes//////////////////////
+   
+    $('input[type=text],input[type=number]').keydown(function (event) {
+
+
+            if (event.shiftKey == true) {
+                event.preventDefault();
+            }
+
+            if ( (event.key == "-") || (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105) || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 37 || event.keyCode == 39 || event.keyCode == 46 || event.keyCode == 190) {
+
+            } else {
+                event.preventDefault();
+            }
+            
+            if($(this).val().indexOf('.') !== -1 && event.keyCode == 190)
+                event.preventDefault();
+
+        });
+        
+        
+                
+  //Cancels keyboard character Copy-Paste 
+  
+  $(function(){  
+             $('input[type=text],input[type=number]').on('paste', function (event) {
+  if (event.originalEvent.clipboardData.getData('Text').match(/[^\d]/)) {
+    event.preventDefault();
+  }
+}); 
+           });
+  
+  ///////////////////////////////////////////////////////////////////////
+  
+  
+  
+  
+  
+  
+   dialog = $( "#notebox" ).dialog({
+		autoOpen: false,
+		height: 500,
+		width: 250,
+		modal: true,
+		buttons: {
+		"Apply Frequencies": applyfreq,
+		Cancel: function() {
+			dialog.dialog( "close" );
+			}
+		}
+
+});
+   
+ $( "#adduserinput" ).button().on( "click", function() {
+dialog.dialog( "open" );
+});
+  
+  
+	
+	$( document ).tooltip();
+	var a = new AudioSynthView();
+	a.draw();
+	
+	$('[id*="B"]').attr('disabled','');
+
+
+	$("label").unbind("mouseover");
+
+   
+    $("#reset").click(function(){
+		$('[id*="B"]').val(0);
+		$('#allcomma').val(0);
+   	 	$('[id*="B"]').trigger("change");
+   	 	$("#set_notes").trigger("click");
+	});
+	
+	$("#allcomma").change(function(){
+		$('#calx').calx();
+		$('input[id*="B"]').val( (+$("#allcomma").val()));
+		$('[id*="B"]').trigger("change");
+		$("#set_notes").trigger("click");
+	
+	});
+
+
+$(":input").bind('keyup mouseup', function () {  $("#set_notes").trigger("click");   })
+
+	function applyfreq(){
+	//$("#applynotebox").trigger('click');
+	     entered = $('#notebox').val();
+    lines = entered.split('\n');
+    var f=0;
+    for(var i in lines) {
+       // alert(lines[i]);
+     //  alert($('#A'+f).val());
+    			$('#A'+f).attr('value','');
+			    $('#A'+f).attr('value',lines[i]);
+			    $('#A'+f).val(lines[i]);
+				$('#A'+f).trigger('change');
+     f++;
+    }
+	
+	};
+	
+ 
+	$("#set_notes").click(function(){
+
+		//$(document).scrollTop( $("#topp").offset().top );  
+		var __audioSynth = new AudioSynth();
+			
+		if ($("#yarman24c").val()=="Set to YA24c")
+		var note_freq = {'Bt':$("#C0").val(),'C': $("#C1").val(),'C#':$("#C2").val(),'Db':$("#C3").val(),'Dd':$("#C4").val(),'D':$("#C5").val(),'D#':$("#C6").val(), 'Eb':$("#C7").val(), 'Ed':$("#C8").val(),'E':$("#C9").val(),'Et':$("#C11").val(),'Ft':$("#C11").val(),'F':$("#C10").val(),'F#':$("#C12").val(),'Gb':$("#C13").val(),'Gd':$("#C14").val(),'G':$("#C15").val(),'G#':$("#C16").val(),'Ab':$("#C17").val(),'Ad':$("#C18").val(),'A':$("#C19").val(),'A#': $("#C20").val(),'Bb':$("#C21").val(),'Bd':$("#C22").val(),'B':$("#C23").val()};
+		else
+	    var note_freq = {'Bt':$("#C0").val(),'C': $("#C1").val(),'C#':$("#C2").val(),'Db':$("#C3").val(),'Dd':$("#C4").val(),'D':$("#C5").val(),'D#':$("#C6").val(), 'Eb':$("#C7").val(), 'Ed':$("#C8").val(),'E':$("#C9").val(),'Et':$("#C10").val(),'Ft':$("#C10").val(),'F':$("#C11").val(),'F#':$("#C12").val(),'Gb':$("#C13").val(),'Gd':$("#C14").val(),'G':$("#C15").val(),'G#':$("#C16").val(),'Ab':$("#C17").val(),'Ad':$("#C18").val(),'A':$("#C19").val(),'A#': $("#C20").val(),'Bb':$("#C21").val(),'Bd':$("#C22").val(),'B':$("#C23").val()};
+
+		__audioSynth.setNoteFreq(note_freq);
+		calculate_cents();
+	
+	});
+	
+	
+	$("#yarman24c").click(function(){
+	
+	
+	//$("#perdeler").prop("checked",false);
+	$("div.white.key").removeAttr("title");
+	$("div.black.key").removeAttr("title");
+
+	
+	//$("#set_notes").trigger("click");
+		var __audioSynth = new AudioSynth();	
+        
+        var aeu          = {'Bt':257.231266,'C':260.7407407,'C#':274.6898339,'Db':278.4375,'Dd':289.3851748,'D':293.3333333,'D#':309.0260631,'Eb':313.2421875,'Ed':325.5583216,'E':330,'F':347.654321,'Ft':352.3974609,'F#':366.2531118,'Gb':371.25,'Gd':385.8468997,'G':391.1111111,'G#':412.0347508,'Ab':417.65625,'Ad':434.0777622,'A':440,'A#':463.5390947,'Bb':469.8632813,'Bd':488.3374824,'B':495}	
+        
+        var aeu_perdeler_1 = {'Bt':'tîz dik-bûselik','C':'tîz çârgâh','C#':'tîz nîm-hicâz','Db':'tîz hicâz','Dd':'tîz dik-hicâz','D':'tîz nevâ','D#':'tîz nîm-hisar', 'Eb':'tîz hisar', 'Ed':'tîz dik-hisar','E':'tîz hüseynî','F':'tîz acem','Ft':'tîz dik-acem','F#':'tîz eviç','Gb':'tîz mâhûr','Gd':'tîz dik-mâhûr','G':'tîz gerdâniye','G#':'tîz nîm-şehnâz','Ab':'tîz şehnâz','Ad':'tîz dik-şehnâz','A':'tîz muhayyer','A#':'tîz sünbûle','Bb':'tîz dik-sünbûle','Bd':'en tîz segâh','B':'en tîz bûselik'};
+		var aeu_perdeler_0 = {'Bt':'dik-bûselik','C':'çârgâh','C#':'nîm-hicâz','Db':'hicâz','Dd':'dik-hicâz','D':'nevâ','D#':'nîm-hisar','Eb':'hisar','Ed':'dik-hisar','E':'hüseynî','Ft':'dik-acem','F':'acem','F#':'eviç','Gb':'mâhûr','Gd':'dik-mâhûr','G':'gerdâniye','G#':'nîm-şehnâz','Ab':'şehnâz','Ad':'dik-şehnâz','A':'muhayyer','A#':'sünbûle','Bb':'dik-sünbûle','Bd':'tîz segâh','B':'tîz bûselik'};
+		var aeu_perdeler_1k = {'Bt':'kaba dik-bûselik','C':'kaba çârgâh','C#':'kaba nîm-hicâz','Db':'kaba hicâz','Dd':'kaba dik-hicâz','D':'yegâh','D#':'kaba nîm-hisar','Eb':'kaba hisar','Ed':'kaba dik-hisar','E':'hüseynî_aşîrân','F':'acem_aşîrân','Ft':'dik-acem_aşîrân','F#':'ırak','Gb':'geveşt','Gd':'dik-geveşt','G':'râst','G#':'nîm-zîrgûle','Ab':'zîrgûle','Ad':'dik-zîrgûle','A':'dügâh','A#':'kürdî','Bb':'dik-kürdî','Bd':'segâh','B':'bûselik',};
+		
+		
+        var yarman24c_ = {'Bt':249.649303,'C': 260.740741,'C#':273.871371,'Db':283.294429,'Dd':291.283703,'D':293.333333,'D#':308.718833, 'Eb':318.855346, 'Ed':321.473895,'E':325.404444,'Et':331.429772,'F':347.654321,'F#':364.798788,'Gb':376.096415,'Gd':379.259259,'G':390.068148,'G#':411.215880,'Ab':426.782762,'Ad':435.396398,'A':440.000000,'A#': 463.539095,'Bb':476.442539,'Bd':484.300087,'B':488.106667};
+        
+        var yarman_perdeler_1 = {'Bt':'dik-mahur','C':'gerdaniye','C#':'nim-şehnaz','Db':'şehnaz','Dd':'dik-şehnaz','D':'muhayyer','D#':'sünbüle', 'Eb':'dik-sünbüle /tiz uşşak', 'Ed':'tiz segah','E':'tiz segahçe','Et':'tiz buselik /nişabur','F':'tiz çargah','F#':'tiz nim-hicaz /uzzal','Gb':'tiz hicaz /saba','Gd':'tiz dik-hicaz /bestenigar','G':'tiz neva','G#':'tiz nim-hisar /bayati','Ab':'tiz hisar /hüzzam','Ad':'tiz dik-hisar /hisarek','A':'tiz hüseyni','A#': 'tiz acem /nevruz','Bb':'tiz dik-acem /arazbar','Bd':'tiz evc','B':'tiz mahur'};
+		var yarman_perdeler_0 = {'Bt':'dik-gevaşt /dik-rahavi','C':'rast','C#':'nim-zengule /şuri','Db':'zengule','Dd':'dik-zengule','D':'dügah','D#':'kürdi /nihavend','Eb':'dik-kürdi /uşşak','Ed':'segah','E':'segahçe','Et':'buselik /nişabur','F':'çargah','F#':'nim-hicaz /uzzal','Gb':'hicaz /saba','Gd':'dik-hicaz /bestenigar','G':'neva','G#':'nim-hisar /bayati','Ab':'hisar /hüzzam','Ad':'dik-hisar /hisarek','A':'hüseyni','A#':'acem /nevruz','Bb':'dik-acem /arazbar','Bd':'evc','B':'mahur'};
+		var yarman_perdeler_1k ={'Bt':'kaba dik-gevaşt /dik-rahavi','C':'kaba rast','C#':'kaba nim-zengule /şuri','Db':'kaba zengule','Dd':'kaba dik-zengule','D':'kaba dügah','D#':'kaba kürdi /nihavend', 'Eb':'kaba dik-kürdi /uşşak', 'Ed':'kaba segah','E':'kaba segahçe','Et':'kaba buselik /nişabur','F':'kaba çargah','F#':'kaba nim-hicaz /uzzal','Gb':'kaba hicaz /saba','Gd':'kaba dik-hicaz /bestenigar','G':'yegah','G#':'kaba nim-hisar /bayati','Ab':'kaba hisar /hüzzam','Ad':'kaba dik-hisar /hisarek','A':'(hüseyni)aşiran','A#':'acemaşiran /kaba nevruz','Bb':'dik-acemaşiran /kaba arazbar','Bd':'arak','B':'gevaşt /rahavi'};
+	
+		if($("#yarman24c").val()=="Set to YA24c"){
+		
+			__audioSynth.setNoteFreq(yarman24c_);
+            __audioSynth.setPerdeler_1(yarman_perdeler_1);
+			__audioSynth.setPerdeler_0(yarman_perdeler_0);
+			__audioSynth.setPerdeler_1k(yarman_perdeler_1k);
+			$('#allcomma').val(9.210198327709686);
+			$("#allcomma").trigger('change')
+			$('[id*="B"]').attr('disabled','');
+			$("#yarman24c").val("Set to Arel-Ezgi-Uzdilek");
+			var k=0;
+			for (var notef in yarman24c_)
+				{	
+					$('#A'+k).attr('value','');
+					$('#A'+k).attr('value',yarman24c_[notef]);
+					$('#A'+k).val(yarman24c_[notef]);
+					$('#A'+k).trigger('change');
+					$('#P'+k).text(yarman_perdeler_0[notef]);
+					
+					k++;
+		
+				};
+				
+		  // Gelen istek üzerine koma resetlemeleri iptal edildi
+		  //  $("#reset").trigger("click");
+			
+			$("#perdeler").trigger("click");
+			$("#perdeler").trigger("click");
+			
+			
+	   }else{
+	   		
+			__audioSynth.setNoteFreq(aeu);
+			$('#allcomma').val(31.003012538221279);
+			$("#allcomma").trigger('change')
+            __audioSynth.setPerdeler_1(aeu_perdeler_1);
+			__audioSynth.setPerdeler_0(aeu_perdeler_0);
+			__audioSynth.setPerdeler_1k(aeu_perdeler_1k);
+			$('[id*="B"]').removeAttr('disabled');
+			$("#yarman24c").val("Set to YA24c");
+			//Et yi Ft ye çevirmek icin 
+			$("#perdeler").trigger("click");
+			$("#perdeler").trigger("click");
+
+			var l=0;
+			for (var note in aeu)
+			{	
+				$('#A'+l).attr('value','');
+				$('#A'+l).attr('value',aeu[note]);
+				$('#A'+l).val(aeu[note]);
+				$('#P'+l).text(aeu_perdeler_0[note]);
+				$('#A'+l).trigger('change');
+				l++;
+			};
+
+		//comma resets cancelled due to user prompt.
+		//	$("#reset").trigger("click");
+		
+			
+			
+	   }
+			$("#set_notes").trigger("click");
+	});
+	
+ 
+	$('#calx').calx();
+	calculate_cents();
+	
+	function calculate_cents(){
+	for (i=0;i<24;i++){
+	var k=i+1;
+	$('#D'+i).val((1200*(Math.log2($('#C'+k).val()/$('#C'+i).val()))).toFixed(8));
+	}
+	}
+	
+
+});
+
+
+
+
+   $(document).ready(function () {
+
+   
+   			$('#allcomma').val(9.210198327709686);
+			$("#allcomma").trigger('change')
+ 
+            //iterate through each textboxes and add keyup
+            //handler to trigger sum event
+            $(".cent").each(function () {
+                    calculateSum();
+                });
+
+
+
+
+
+  });
+
+
+
+
+
+        function calculateSum() {
+            var sum = 0;
+            //iterate through each textboxes and add the values
+            $(".cent").each(function () {
+                //add only if the value is number
+                if (!isNaN($(this).val()) && $(this).val().length != 0) {
+                    sum += parseFloat(this.value);
+                }
+            });
+
+            //.toFixed() method will roundoff the final sum to n decimal places
+            $("#sum").val(sum.toFixed(5));
+        }
+    
+    
+
+    
+    
+    
+  </script>
+
+  
+  <style>
+
+	body { font-family: Helvetica; color: rgb(32,32,32); padding: 10px;
+		background:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAM0lEQVQIW2P8DwQMMPDwIAODvD2YxwiXQBJESKAJQiQeHPgP0w43EsUoZFGgCQg70BwAANTgIZHym5jNAAAAAElFTkSuQmCC') repeat;
+}
+	.key { position: absolute; font-family: Helvetica; font-weight: 100; font-size: 12px;
+		border: 1px solid rgba(32,32,32,0.2);
+		border-radius: 0px 0px 5px 5px;
+		cursor:pointer;
+		box-shadow: 0px 5px 1px rgba(32,32,32,0.2);
+		-webkit-transition: margin 0.05s ease, background-color 0.05s ease, box-shadow 0.05s ease; }
+	.key:hover { background-color: rgb(255,192,32); }
+		
+	.key .label { position: absolute; bottom: 5px; text-align: center; left: 0px; right: 0px; }
+
+	th.perrde {
+  width: 10%;
+}
+	
+	
+	.black { background-color: rgb(32,32,32); color: #ffffff; z-index:1; text-shadow: 0px -1px 1px rgba(255,255,255,0.5); }
+	
+	.white { background-color: #ffffff; color: rgb(32,32,32); z-index:0; text-shadow: 0px 1px 1px rgba(32,32,32,0.5); }
+	
+	.title { text-shadow: 0px 1px 1px rgba(32,32,32,0.2); font-size: 40px; font-weight: bold; font-family: Helvetica; padding: 10px; text-align: center; }
+	
+	.sub { color: rgb(96,96,96); font-size: 30px; padding: 10px; font-weight:100; margin:10px 0px; text-shadow: 0px 1px 1px rgba(32,32,32,0.2); text-align:center; }
+	.sub a, .sub a:link, .sub a:visited, .sub a:active { font-weight:bold; color: rgb(128,160,255); text-decoration: none; }
+	.sub a:hover { color: rgb(160,192,255); }
+	
+	.source a { color: rgb(255,96,96); }
+	.source a:link, .source a:visited, .source a:active { color: rgb(255,96,96); }
+	.source a:hover { color: rgb(255,128,128); }
+	
+	.small { font-size: 20px; }
+	
+	.keyboard-options { margin: 30px auto; width: auto; text-align: center; font-size: 12px; font-weight: 200; padding:10px; }
+	
+	.keyboard-holder { margin: 30px auto; height: 200px; position:relative; user-select:none; -webkit-user-select:none;-moz-user-select:none;-o-user-select:none; }
+	
+	.about { position: relative; max-width: 700px; margin: 30px auto; }
+	.about .header { background-color:rgba(32,64,128,0.5); border-radius: 10px 10px 0px 0px; color:rgb(255,255,255); text-shadow:0px 1px 0px rgb(96,96,96);
+		position: relative; max-width: 600px; margin: 0 auto;
+		font-size: 30px; font-weight: bold; padding: 20px; text-align:center; }
+	.about .contents { font-size: 16px; line-height: 20px; background-color: rgb(255,255,255); font-weight: 200; padding: 20px; text-align: left; position: relative;
+		color: rgb(32,32,32); text-shadow: 0px 1px 0px rgb(224,224,224);
+		box-shadow: 0px 5px 10px rgba(32,32,32,0.5); -webkit-box-shadow: 0px 5px 10px rgba(32,32,32,0.5); border: 1px solid rgb(192,192,192); }
+	.about .footer { background-color:rgba(32,64,128,0.5); border-radius: 0px 0px 10px 10px; color:rgb(255,255,255);
+		position: relative; max-width: 600px; margin: 0 auto; font-weight: bold; padding: 20px; }
+	
+	.about a, .about a:link, .about a:visited, .about a:active { font-weight:bold; color: rgb(224,96,32); text-decoration: none; }
+	.about a:hover { color: rgb(224,128,64); }
+	
+	.code { border: 1px solid rgba(32,32,32,0.2); color: rgb(32,32,32); font-family: Courier New, Courier, monospace; font-size: 12px; white-space:pre; padding: 10px; margin: 10px; }
+	
+	.image { border: 1px solid rgba(32,32,32,0.2); color: rgb(32,32,32); font-family: Courier New, Courier, monospace; font-size: 12px; white-space:pre; padding: 10px; margin: 10px; text-align: center; }
+
+  </style>
+ 
+  <style>
+  .mark {
+    background-color: yellow;
+    color: black;
+	}
+   .kalin{
+  font-weight:bold;
+      }
+  </style>  
+  
+  <script async="" src="./js/analytics.js"></script>
+  
+  <script src="./js/audiosynth.js"></script>
+  
+  <script src="./js/audiosynth.view.js"></script>
+  
+  <style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+  </style>
+  
+    <!-- emir dialog fixes -->
+  <style type="text/css">
+  	
+
+  	.ui-dialog .ui-dialog-content{
+  		width: 100% !important;
+  		box-sizing: border-box;
+  	}
+  	.ui-widget.ui-dialog{
+  		z-index: 2 !important;
+  	}
+  </style>
+  
+  <meta charset="utf-8">
+
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  
+  <meta name="author" content="Ozan Yarman">
+
+  
+  <meta name="robots" content="all">
+
+  
+  <meta name="generator" content="Sandvox 2.9.5">
+
+  
+  <meta name="viewport" content="width=780">
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+  
+  <link rel="canonical" href="http://www.makam-usul.org/">
+
+  
+  <link rel="stylesheet" type="text/css" href="sandvox_Summertime_peach/main.css" title="Summertime Peach">
+  
+  <!--        <link rel="stylesheet" href="readthis.css">
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+
+  
+          <meta http-equiv="EXPIRES" content="-1">
+        <script type="text/javascript">
+            function showFrontLayer() {
+                document.getElementById('bg_mask').style.visibility='visible';
+                document.getElementById('frontlayer').style.visibility='visible';
+            }
+            function hideFrontLayer() {
+                document.getElementById('bg_mask').style.visibility='hidden';
+                document.getElementById('frontlayer').style.visibility='hidden';
+            }
+        </script>
+        <style type="text/css">
+
+        #frontlayer {
+            position: absolute;
+            top: 8em;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin: 0 auto;
+            padding : 13px;
+            width: 400px;
+            height: 235px;
+            background-color: green;
+            color: white;
+            visibility: visible;
+            border: 2px dotted black;
+            z-index: 1;
+        } 
+
+
+        </style>        
+  
+    <script>
+   function ge(){
+   
+    var f=0;
+if (!localStorage.getItem("t") || f!=5 ) {
+    /* set reload locally and then reload the page */
+    localStorage.setItem("t", f);
+    location.reload();
+    f++;
+}
+/* after reload clear the localStorage */
+else {
+	console.log(f);
+	localStorage.removeItem("t");
+	f=0;
+	
+    // localStorage.clear(); // an option
+}
+}
+
+  </script>
+  </head>
+
+
+        <body>
+<form action="test.html">
+  
+                <div id="bg_mask" onclick="hideFrontLayer();"><br>
+              <div id="frontlayer" onclick="hideFrontLayer();"><br>
+            <div style="font-family: Leto; font-size: 17px;">
+                You can play the <span style="font-style: italic;">24-tone Makam Piano</span> with the cursor or your computer keyboard.<br>
+  <br>
+Select your instrument and try out the tuning options.<br><br>
+                For proper mapping, please choose <span style="font-style: italic;">US keyboard layout.</span><br><br>
+
+                
+                <div style="width:95%;height:100%;position:absolute;vertical-align:middle;text-align:center;">
+    <input value="Understood" onclick="hideFrontLayer();" type="button">
+    </div>​
+                
+                
+            </div>
+        </div>
+    </div>
+</form>
+</body>
+  
+  
+    <!--
+        <div class="no-js">
+          <div style="float: right; z-index:-999;">
+        <nav id="Layout Warning">
+                <ul>
+                <li>
+                    <a href="#">Read This</a>
+                    <ul>  
+                        <li><a href="#">To play properly, please choose US keyboard layout</a></li>
+                    </ul>                
+                </li>
+            </ul>
+        </nav>
+        <script src="js/jquery.js"></script>
+        <script src="js/modernizr.js"></script>
+    </div>
+  -->
+  
+  
+  <body  class="sandvox has-page-title allow-sidebar no-custom-banner home-page no-IR" id="www_makamusul_org">
+<br>
+
+<form id="calx">
+  <div style="text-align: center; height: 200px; z-index:999;">
+  <div style="height: 40px; z-index:999;"><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small><span style="color: rgb(51, 51, 51);"></span></small></span></span><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><strong>24-tone
+Makam Piano</strong></span></span></big></big></big></big></big></div>
+  <div><big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"></span></span></big></big></big></big></big></div>
+  <div style="height: 40px; z-index:999;"><big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;">&nbsp;
+  </span></span></big></big></big></big><big><big><big><big><span style="font-family: Baskerville Old Face, 'Libre Baskerville', serif;"><small><span style="color: rgb(51, 51, 51);"></span></small></span><span style="font-style: italic; color: rgb(51, 51, 51);"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);">by
+Mesut Güngör &amp; Dr. Ozan Yarman </small></span></span></big></big></big></big><big><big><big><big><span style="font-family: Baskerville Old Face, 'Libre Baskerville', serif;"><small><span style="color: rgb(51, 51, 51);">(</span><span style="color: rgb(0, 204, 204);"><b>2017</b> <sup><i><u>v1.2</u></i></sup></span><span style="color: rgb(51, 51, 51);"><sup> </sup></span></small></span></big></big></big></big><big><big><big><big><span style="font-family: Baskerville Old Face, 'Libre Baskerville', serif;"><small><span style="color: rgb(51, 51, 51);">)</span></small></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"></span></span></big></big></big></big></big></div>
+  <div style="height: 40px; z-index:999;"><big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small> </small></small></small></small></span></span></big></big></big></big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small><span style="color: rgb(51, 51, 51);">based on Keith
+William Horwood's </span><span style="color: red;">JS Dynamic Audio
+Synth</span></small></span></span><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small> <span style="color: rgb(51, 51, 51);">(</span><span style="color: rgb(51, 204, 0);">© 2013</span><span style="color: rgb(51, 51, 51);">)</span></small></span><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small>
+  <a href="http://www.keithwhor.com/music" target="_blank">source code</a></small></span></span></big></big></big></big></div>
+  <div style="height: 72px; z-index:999;"><big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small> <big><big>~&nbsp;&nbsp;
+featuring <span style="color: rgb(51, 102, 255);"><a href ="https://www.youtube.com/watch?v=-QcYgslHq9k" style="color: rgb(51, 102, 255);" target="_blank">Yarman-24c makam
+	  tuning</a></span> </big></big></small></small></small></small></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big>suitable
+for Western music</big></big></small></small></small></small></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big> &amp;</big></big></small></small></small></small></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big> <span style="color: rgb(255, 150, 0);">Arel-Ezgi-Uzdilek </span></big></big></small></small></small></small></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big>system </big></big></small></small></small></small></span></span></big></big></big></big><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big>~</big></big></small></small></small></small></span></span></big></big></big></big></big>
+  <big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"></span></span></big></big></big></big></div>
+  <div><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big> </big></big></small></small></small></small></span></span></big></big></big></big></div>
+  <div><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big> </big></big>
+  </small></small></small></small></span></span></big></big></big></big></div>
+  <div><big><big><big><big><span style="font-style: italic;"><span style="font-family: Baskerville, 'Libre Baskerville', serif;"><small style="color: rgb(51, 51, 51);"><small><small><small><big><big> </big></big></small></small></small></small></span></span></big></big></big></big></div>
+  </div>
+  <div style="height: 120px" class="keyboard-options"><big><big><big><big><small style="color: rgb(51, 51, 51);"><small><small><big><big><small style="color: rgb(51, 51, 51);"><small><big>Sound&nbsp;</big>
+  <select id="sound">
+  <option value="0" selected="selected">Hammerklavier</option>
+  <option value="1">Organ</option>
+  <option value="2">Acoustic Guitar</option>
+  <option value="3">Electric Piano</option>
+  </select>
+  </small></small></big></big> </small></small></small></big></big> </big></big>
+  <div style="margin-top: 16px; height: 28px;" class="keyboard-options"><big><big><big><big><small style="color: rgb(51, 51, 51);"><small><small><big><big><small style="color: rgb(51, 51, 51);"><small><big>"Hover <span style="font-style: italic;">&amp;&nbsp;</span> Play" activate </big> <input id="hovver" name="hovver" type="checkbox"></small></small></big></big></small></small></small></big></big></big></big><big><big><big><big><small style="color: rgb(51, 51, 51);"><small><small><big><big><small style="color: rgb(51, 51, 51);"><small><big> &nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; Show "Perde Names"</big> <input id="perdeler" name="perdeler" type="checkbox"></small></small></big></big></small></small></small></big></big></big></big></div>
+  </div>
+  <big><big> </big></big>
+  <div id="keyboard" class="keyboard-holder" style="width: 840px;"><big><big>
+  </big></big></div>
+  <big><big> </big></big>
+  <div style="height: 120px;" class="keyboard-options"><big><big>&nbsp;
+  <big><small><small style="color: rgb(51, 51, 51);"><small><big><big><big style="color: rgb(51, 51, 51);"><small><big>Range [C<span id="OCTAVE_LOWER">3</span>-B<span id="OCTAVE_UPPER">5</span>] <input id="-_OCTAVE" value="-" type="button"><input id="+_OCTAVE" value="+" type="button"><br>
+  </small></small></big></big></small></small></big></big></big><br>
+  <big><small style="color: rgb(51, 51, 51);"><small><small><big><big><small style="color: rgb(51, 51, 51);"><small><big><i>(L"</i><span style="font-weight: bold; font-style: italic;">O</span><i>"wer /
+&nbsp; u"</i><span style="font-weight: bold; font-style: italic;">P</span><i>"per&nbsp;
+controls for adjusting the octave level)<br>
+<div style="float:center;background-color:orange;color:white;padding:2px;">
+<select id="makam">
+     </select> 
+     <button id="makamm" style="display: none;" >PLAY SCALE</button></div>
+    <span id="textmakam">PRESS&nbsp; "L"&nbsp; to PLAY CHOSEN MAKAM SCALE</span><br>
+  </i></big></small></small></big></big></small></small></small></big> </big></big></div>
+  <big> <big><big><small style="color: rgb(51, 51, 51);"><small><small><big><big><small style="color: rgb(51, 51, 51);"><small> </small></small></big></big></small></small></small></big></big>
+  </big> <small> </small>
+  <table>
+  </table>
+  <big><big> <br>
+  </big></big>
+  <table style="width: 728px; height: 781px; margin-left: auto; margin-right: auto;" id="CalxTable">
+    <tbody>
+      <tr>
+        <td><br>
+        </td>
+        <td><input id="yarman24c" value="Set to Arel-Ezgi-Uzdilek" type="button"></td>
+       <td></td>
+        <td><input min="-22"max="32"id="allcomma" value="0" type="number"></td>
+         <td><input id="reset" value="Reset shifts" type="button"></td>
+      	<td><input id="set_notes" value="Apply frequencies" type="button"></td>
+      </tr>
+      <tr>
+        <td><br>
+        </td>
+      </tr>
+      <tr>
+        <th style="text-align: left;"><big><span style="text-decoration: underline;">Nr.</span>&nbsp; <br>
+
+        </big></th>
+        <th style="width: 25%; text-align: left; text-decoration: underline;" class="perrde"><big>Perde</big></th>
+        <th style="width: 10%; text-align: left; text-decoration: underline;"><big>Frequency</big></th>
+        <th style="width: 16%; text-align: left;"><big><span style="text-decoration: underline;">Transpose by:</span>&nbsp;&nbsp;<br>
+
+        </big></th>
+        <th style="width: 20%; text-align: left;"><big><span style="text-decoration: underline;">Shifted Frequency</span></big><br>
+        </th><th style="text-align: center;"><big><span style="text-decoration: underline;">Interval (Cents)</span></big><br>
+        </th>
+        
+      </tr>
+      <tr>
+        <td><big>0</big></td>
+        <td><big><span id="P0">dik-gevaşt /dik-rahavi</span></big></td>
+        <td><input id="A0" data-format="0[.]00000" value="249.649303" type="text"></td>
+        <td><input min="-22" max="32"id="B0" data-format="0" value="0" type="number"></td>
+        <td><input id="C0" data-format="0[.]00000" data-formula="$A0*(2^($B0/53))" value="$A0*(2^($B0/53))" type="text"></td>
+        <td align="center">from previous pitch</td>
+      </tr>
+      <tr>
+        <td><big>1</big></td>
+        <td><big><span id="P1" class="mark">rast</span></big></td>
+        <td><input id="A1" data-format="0[.]00000" value="260.740741" type="text"></td>
+        <td><input min="-22" max="32"id="B1" data-format="0" value="0" type="number"></td>
+        <td><input id="C1" data-format="0[.]00000" data-formula="$A1*(2^($B1/53))" value="$A1*(2^($B1/53))" type="text"></td>
+        <td><input id="D0" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>2</big></td>
+        <td><big><span id="P2" class="kalin">nim-zengule /şuri</span></big></td>
+        <td><input id="A2" data-format="0[.]00000" value="273.871371" type="text"></td>
+        <td><input min="-22" max="32"id="B2" data-format="0" value="0" type="number"></td>
+        <td><input id="C2" data-format="0[.]00000" data-formula="$A2*(2^($B2/53))" value="$A2*(2^($B2/53))" type="text"></td>
+        <td><input id="D1" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>3</big></td>
+        <td><big><span id="P3" class="kalin"><b>zengule</b></span></big></td>
+        <td><input id="A3" data-format="0[.]00000" value="283.294429" type="text"></td>
+        <td><input min="-22" max="32"id="B3" data-format="0" value="0" type="number"></td>
+        <td><input id="C3" data-format="0[.]00000" data-formula="$A3*(2^($B3/53))" value="$A3*(2^($B3/53))" type="text"></td>
+        <td><input id="D2" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>4</big></td>
+        <td><big><span id="P4">dik-zengule</span></big></td>
+        <td><input id="A4" data-format="0[.]00000" value="291.283703" type="text"></td>
+        <td><input min="-22" max="32"id="B4" data-format="0" value="0" type="number"></td>
+        <td><input id="C4" data-format="0[.]00000" data-formula="$A4*(2^($B4/53))" value="$A4*(2^($B4/53))" type="text"></td>
+        <td><input id="D3" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>5</big></td>
+        <td><big><span id="P5" class="mark"><mark>dügah</mark></span></big></td>
+        <td><input id="A5" data-format="0[.]00000" value="293.333333" type="text"></td>
+        <td><input min="-22" max="32"id="B5" data-format="0" value="0" type="number"></td>
+        <td><input id="C5" data-format="0[.]00000" data-formula="$A5*(2^($B5/53))" value="$A5*(2^($B5/53))" type="text"></td>
+        <td><input id="D4" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>6</big></td>
+        <td><big><span id="P6"class="kalin">kürdi /nihavend</span></big></td>
+        <td><input id="A6" data-format="0[.]00000" value="308.718833" type="text"></td>
+        <td><input min="-22" max="32"id="B6" data-format="0" value="0" type="number"></td>
+        <td><input id="C6" data-format="0[.]00000" data-formula="$A6*(2^($B6/53))" value="$A6*(2^($B6/53))" type="text"></td>
+        <td><input id="D5" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>7</big></td>
+        <td><big><span id="P7" class="kalin">dik-kürdi /uşşak</span></big></td>
+        <td><input id="A7" data-format="0[.]00000" value="318.855346" type="text"></td>
+        <td><input min="-22" max="32"id="B7" data-format="0" value="0" type="number"></td>
+        <td><input id="C7" data-format="0[.]00000" data-formula="$A7*(2^($B7/53))" value="$A7*(2^($B7/53))" type="text"></td>
+        <td><input id="D6" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>8</big></td>
+        <td><big><span id="P8" class="mark">segah</span></big></td>
+        <td><input id="A8" data-format="0[.]00000" value="321.473895" type="text"></td>
+        <td><input min="-22" max="32"id="B8" data-format="0" value="0" type="number"></td>
+        <td><input id="C8" data-format="0[.]00000" data-formula="$A8*(2^($B8/53))" value="$A8*(2^($B8/53))" type="text"></td>
+        <td><input id="D7" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>9</big></td>
+        <td><big><span id="P9" class="mark"><mark>segahçe</mark></span></big></td>
+        <td><input id="A9" data-format="0[.]00000" value="325.404444" type="text"></td>
+        <td><input min="-22" max="32"id="B9" data-format="0" value="0" type="number"></td>
+        <td><input id="C9" data-format="0[.]00000" data-formula="$A9*(2^($B9/53))" value="$A9*(2^($B9/53))" type="text"></td>
+        <td><input id="D8" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>10</big></td>
+        <td><big><span id="P10">buselik /nişabur</span></big></td>
+        <td><input id="A10" data-format="0[.]00000" value="331.429772" type="text"></td>
+        <td><input min="-22" max="32"id="B10" data-format="0" value="0" type="number"></td>
+        <td><input id="C10" data-format="0[.]00000" data-formula="$A10*(2^($B10/53))" value="$A10*(2^($B10/53))" type="text"></td>
+        <td><input id="D9" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>11</big></td>
+        <td><big><span id="P11" class="mark"><mark>çargah</mark></span></big></td>
+        <td><input id="A11" data-format="0[.]00000" value="347.654321" type="text"></td>
+        <td><input min="-22" max="32"id="B11" data-format="0" value="0" type="number"></td>
+        <td><input id="C11" data-format="0[.]00000" data-formula="$A11*(2^($B11/53))" value="$A11*(2^($B11/53))" type="text"></td>
+        <td><input id="D10" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>12</big></td>
+        <td><big><span id="P12" class="kalin">nim-hicaz /uzzal</span></big></td>
+        <td><input id="A12" data-format="0[.]00000" value="364.798788" type="text"></td>
+        <td><input min="-22" max="32"id="B12" data-format="0" value="0" type="number"></td>
+        <td><input id="C12" data-format="0[.]00000" data-formula="$A12*(2^($B12/53))" value="$A12*(2^($B12/53))" type="text"></td>
+        <td><input id="D11" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>13</big></td>
+        <td><big><span id="P13" class="kalin">hicaz /saba</span></big></td>
+        <td><input id="A13" data-format="0[.]00000" value="376.096415" type="text"></td>
+        <td><input min="-22" max="32"id="B13" data-format="0" value="0" type="number"></td>
+        <td><input id="C13" data-format="0[.]00000" data-formula="$A13*(2^($B13/53))" value="$A13*(2^($B13/53))" type="text"></td>
+        <td><input id="D12" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>14</big></td>
+        <td><big><span id="P14">dik-hicaz /bestenigar</span></big></td>
+        <td><input id="A14" data-format="0[.]00000" value="379.259259" type="text"></td>
+        <td><input min="-22" max="32"id="B14" data-format="0" value="0" type="number"></td>
+        <td><input id="C14" data-format="0[.]00000" data-formula="$A14*(2^($B14/53))" value="$A14*(2^($B14/53))" type="text"></td>
+        <td><input id="D13" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>15</big></td>
+        <td><big><span id="P15" class="mark"><mark>neva</mark></span></big></td>
+        <td><input id="A15" data-format="0[.]00000" value="390.068148" type="text"></td>
+        <td><input min="-22" max="32"id="B15" data-format="0" value="0" type="number"></td>
+        <td><input id="C15" data-format="0[.]00000" data-formula="$A15*(2^($B15/53))" value="$A15*(2^($B15/53))" type="text"></td>
+        <td><input id="D14" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>16</big></td>
+        <td><big><span id="P16" class="kalin">nim-hisar /bayati</span></big></td>
+        <td><input id="A16" data-format="0[.]00000" value="411.21588" type="text"></td>
+        <td><input min="-22" max="32"id="B16" data-format="0" value="0" type="number"></td>
+        <td><input id="C16" data-format="0[.]00000" data-formula="$A16*(2^($B16/53))" value="$A16*(2^($B16/53))" type="text"></td>
+        <td><input id="D15" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>17</big></td>
+        <td><big><span id="P17" class="kalin">hisar /hüzzam</span></big></td>
+        <td><input id="A17" data-format="0[.]00000" value="426.782762" type="text"></td>
+        <td><input min="-22" max="32"id="B17" data-format="0" value="0" type="number"></td>
+        <td><input id="C17" data-format="0[.]00000" data-formula="$A17*(2^($B17/53))" value="$A17*(2^($B17/53))" type="text"></td>
+        <td><input id="D16" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>18</big></td>
+        <td><big><span id="P18">dik-hisar /hisarek</span></big></td>
+        <td><input id="A18" data-format="0[.]00000" value="435.396398" type="text"></td>
+        <td><input min="-22" max="32"id="B18" data-format="0" value="0" type="number"></td>
+        <td><input id="C18" data-format="0[.]00000" data-formula="$A18*(2^($B18/53))" value="$A18*(2^($B18/53))" type="text"></td>
+        <td><input id="D17" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>19</big></td>
+        <td><big><span id="P19" class="mark"><mark>hüseyni</mark></span></big></td>
+        <td><input id="A19" data-format="0[.]00000" value="440" type="text"></td>
+        <td><input min="-22" max="32"id="B19" data-format="0" value="0" type="number"></td>
+        <td><input id="C19" data-format="0[.]00000" data-formula="$A19*(2^($B19/53))" value="$A19*(2^($B19/53))" type="text"></td>
+        <td><input id="D18" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>20</big></td>
+        <td><big><span id="P20" class="kalin">acem /nevruz</span></big></td>
+        <td><input id="A20" data-format="0[.]00000" value="463.539095" type="text"></td>
+        <td><input min="-22" max="32"id="B20" data-format="0" value="0" type="number"></td>
+        <td><input id="C20" data-format="0[.]00000" data-formula="$A20*(2^($B20/53))" value="$A20*(2^($B20/53))" type="text"></td>
+        <td><input id="D19" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>21</big></td>
+        <td><big><span id="P21" class="kalin">dik-acem /arazbar</span></big></td>
+        <td><input id="A21" data-format="0[.]00000" value="476.442539" type="text"></td>
+        <td><input min="-22" max="32"id="B21" data-format="0" value="0" type="number"></td>
+        <td><input id="C21" data-format="0[.]00000" data-formula="$A21*(2^($B21/53))" value="$A21*(2^($B21/53))" type="text"></td>
+        <td><input id="D20" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>22</big></td>
+        <td><big><span id="P22" class="mark">evc</span></big></td>
+        <td><input id="A22" data-format="0[.]00000" value="484.300087" type="text"></td>
+        <td><input min="-22" max="32"id="B22" data-format="0" value="0" type="number"></td>
+        <td><input id="C22" data-format="0[.]00000" data-formula="$A22*(2^($B22/53))" value="$A22*(2^($B22/53))" type="text"></td>
+        <td><input id="D21" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><big>23</big></td>
+        <td><big><span id="P23" class="mark"><mark>mahur</mark></span></big></td>
+        <td><input id="A23" data-format="0[.]00000" value="488.106667" type="text"></td>
+        <td><input min="-22" max="32"id="B23" data-format="0" value="0" type="number"></td>
+        <td><input id="C23" data-format="0[.]00000" data-formula="$A23*(2^($B23/53))" value="$A23*(2^($B23/53))" type="text"></td>
+        <td><input id="D22" class="cent" type="text"></td>
+      </tr>
+      <tr>
+      </tr><tr>
+        <td><big>24</big></td>
+        <td><big><span id="P24">OCTAVE</span></big></td>
+        <td><input id="A24" data-format="0[.]00000" data-formula="$A0*2" value="$A0*2" type="text"></td>
+        <td><br>
+</td>
+        <td><input id="C24" data-format="0[.]00000" data-formula="$C0*2" value="$C0*2" type="text"></td>
+        <td><input id="D23" class="cent" type="text"></td>
+      </tr>
+      <tr>
+        <td><br>
+        </td>
+        <td><br>
+        </td>
+        <td><input id="adduserinput" value="Paste values" type="button"></td>
+        <td><br>
+        </td>
+        <td align="center">sum of cents &gt;&gt;&gt; </td>
+        <td><input id="sum" class="input-medium" type="text"></td>
+      </tr>
+      <tr>
+      </tr>
+      <tr>
+      </tr>
+    </tbody>
+  </table>
+  
+    <textarea id="notebox" cols="150" rows="24"></textarea><big><big><br>
+   <!--  <div id="keyboard_warning" title="Basic dialog"  >
+  <p>To play properly, please choose US keyboard layout.</p>
+   -->
+</div>
+  <big><br>
+  </big><br>
+  </big></big></form>
+
+<!--
+		Photo credits for this website's design: <http://www.makam-usul.org/sandvox_Summertime_peach/Credits.rtf>
+		Licensing for this website's design:     <http://www.makam-usul.org/sandvox_Summertime_peach/License.rtf>
+		-->
+</body>
+</html>
