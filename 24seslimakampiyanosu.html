@@ -195,7 +195,7 @@ $(":input").bind('keyup mouseup', function () {  $("#set_notes").trigger("click"
 		//$(document).scrollTop( $("#topp").offset().top );  
 		var __audioSynth = new AudioSynth();
 			
-		if ($("#yarman24c").val()=="Set to YA24c")
+		if ($("#yarman24c").val()=="YA24c yap")
 		var note_freq = {'Bt':$("#C0").val(),'C': $("#C1").val(),'C#':$("#C2").val(),'Db':$("#C3").val(),'Dd':$("#C4").val(),'D':$("#C5").val(),'D#':$("#C6").val(), 'Eb':$("#C7").val(), 'Ed':$("#C8").val(),'E':$("#C9").val(),'Et':$("#C11").val(),'Ft':$("#C11").val(),'F':$("#C10").val(),'F#':$("#C12").val(),'Gb':$("#C13").val(),'Gd':$("#C14").val(),'G':$("#C15").val(),'G#':$("#C16").val(),'Ab':$("#C17").val(),'Ad':$("#C18").val(),'A':$("#C19").val(),'A#': $("#C20").val(),'Bb':$("#C21").val(),'Bd':$("#C22").val(),'B':$("#C23").val()};
 		else
 	    var note_freq = {'Bt':$("#C0").val(),'C': $("#C1").val(),'C#':$("#C2").val(),'Db':$("#C3").val(),'Dd':$("#C4").val(),'D':$("#C5").val(),'D#':$("#C6").val(), 'Eb':$("#C7").val(), 'Ed':$("#C8").val(),'E':$("#C9").val(),'Et':$("#C10").val(),'Ft':$("#C10").val(),'F':$("#C11").val(),'F#':$("#C12").val(),'Gb':$("#C13").val(),'Gd':$("#C14").val(),'G':$("#C15").val(),'G#':$("#C16").val(),'Ab':$("#C17").val(),'Ad':$("#C18").val(),'A':$("#C19").val(),'A#': $("#C20").val(),'Bb':$("#C21").val(),'Bd':$("#C22").val(),'B':$("#C23").val()};
@@ -230,7 +230,7 @@ $(":input").bind('keyup mouseup', function () {  $("#set_notes").trigger("click"
 		var yarman_perdeler_0 = {'Bt':'dik-gevaşt /dik-rahavi','C':'rast','C#':'nim-zengule /şuri','Db':'zengule','Dd':'dik-zengule','D':'dügah','D#':'kürdi /nihavend','Eb':'dik-kürdi /uşşak','Ed':'segah','E':'segahçe','Et':'buselik /nişabur','F':'çargah','F#':'nim-hicaz /uzzal','Gb':'hicaz /saba','Gd':'dik-hicaz /bestenigar','G':'neva','G#':'nim-hisar /bayati','Ab':'hisar /hüzzam','Ad':'dik-hisar /hisarek','A':'hüseyni','A#':'acem /nevruz','Bb':'dik-acem /arazbar','Bd':'evc','B':'mahur'};
 		var yarman_perdeler_1k ={'Bt':'kaba dik-gevaşt /dik-rahavi','C':'kaba rast','C#':'kaba nim-zengule /şuri','Db':'kaba zengule','Dd':'kaba dik-zengule','D':'kaba dügah','D#':'kaba kürdi /nihavend', 'Eb':'kaba dik-kürdi /uşşak', 'Ed':'kaba segah','E':'kaba segahçe','Et':'kaba buselik /nişabur','F':'kaba çargah','F#':'kaba nim-hicaz /uzzal','Gb':'kaba hicaz /saba','Gd':'kaba dik-hicaz /bestenigar','G':'yegah','G#':'kaba nim-hisar /bayati','Ab':'kaba hisar /hüzzam','Ad':'kaba dik-hisar /hisarek','A':'(hüseyni)aşiran','A#':'acemaşiran /kaba nevruz','Bb':'dik-acemaşiran /kaba arazbar','Bd':'arak','B':'gevaşt /rahavi'};
 	
-		if($("#yarman24c").val()=="Set to YA24c"){
+		if($("#yarman24c").val()=="YA24c yap"){
 		
 			__audioSynth.setNoteFreq(yarman24c_);
             __audioSynth.setPerdeler_1(yarman_perdeler_1);
@@ -239,7 +239,7 @@ $(":input").bind('keyup mouseup', function () {  $("#set_notes").trigger("click"
 			$('#allcomma').val(9.210198327709686);
 			$("#allcomma").trigger('change')
 			$('[id*="B"]').attr('disabled','');
-			$("#yarman24c").val("Set to Arel-Ezgi-Uzdilek");
+			$("#yarman24c").val("Arel-Ezgi-Uzdilek yap");
 			var k=0;
 			for (var notef in yarman24c_)
 				{	
@@ -269,7 +269,7 @@ $(":input").bind('keyup mouseup', function () {  $("#set_notes").trigger("click"
 			__audioSynth.setPerdeler_0(aeu_perdeler_0);
 			__audioSynth.setPerdeler_1k(aeu_perdeler_1k);
 			$('[id*="B"]').removeAttr('disabled');
-			$("#yarman24c").val("Set to YA24c");
+			$("#yarman24c").val("YA24c yap");
 			//Et yi Ft ye çevirmek icin 
 			$("#perdeler").trigger("click");
 			$("#perdeler").trigger("click");
